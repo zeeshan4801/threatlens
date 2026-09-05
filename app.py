@@ -23,9 +23,13 @@ import ipaddress
 import json
 import os
 import re
+
+from dotenv import load_dotenv
 from urllib.parse import urlparse
 
 import streamlit as st
+
+load_dotenv()
 
 from sources import SOURCE_REGISTRY
 
@@ -163,15 +167,19 @@ def call_gemini(prompt: str) -> tuple[str | None, str | None]:
     missing.
     """
     api_key = None
+
+    # Streamlit Cloud secrets
     try:
-        if "GEMINI_API_KEY" in st.secrets:
-            api_key = st.secrets["GEMINI_API_KEY"]
+        api_key = st.secrets.get("GEMINI_API_KEY")
     except Exception:
         pass
-    api_key = api_key or os.environ.get("GEMINI_API_KEY")
+
+    # Local .env / environment fallback
+    api_key = api_key or os.getenv("GEMINI_API_KEY")
+
 
     if not api_key:
-        return None, "Missing GEMINI_API_KEY (set as env var or Streamlit secret)."
+        return None, "Gemini API key missing. Add GEMINI_API_KEY in Streamlit Secrets or your .env file."
 
     try:
         from google import genai
